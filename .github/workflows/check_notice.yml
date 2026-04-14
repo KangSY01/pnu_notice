@@ -2,7 +2,7 @@ name: PNU CSE Notice Checker
 
 on:
   schedule:
-    - cron: "0 16 * * *"  # 매일 오전 1시 (KST)
+    - cron: "0 1 * * *"  # 매일 오전 10시 (KST)
   workflow_dispatch:
 
 jobs:
