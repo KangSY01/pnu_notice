@@ -16,15 +16,19 @@ RECEIVER = os.environ["EMAIL_RECEIVER"]
 LAST_SEEN_FILE = "last_seen.json"
 
 def get_notices():
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
-        "Referer": "https://cse.pusan.ac.kr/",
-    }
-    res = requests.get(URL, headers=headers, timeout=10)
-    res.encoding = "utf-8"
-    soup = BeautifulSoup(res.text, "html.parser")
+    import urllib.request
+    req = urllib.request.Request(
+        URL,
+        headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        }
+    )
+    with urllib.request.urlopen(req, timeout=10) as response:
+        html = response.read().decode("utf-8")
+
+    soup = BeautifulSoup(html, "html.parser")
+    print("HTML 길이:", len(html))
+    print("td.td-subject 개수:", len(soup.select("td.td-subject")))
 
     notices = []
     rows = soup.select("td.td-subject")
