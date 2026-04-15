@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import smtplib
 import json
 import os
+import subprocess
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from datetime import datetime
@@ -44,13 +45,19 @@ def get_notices():
 def load_last_seen():
     try:
         with open(LAST_SEEN_FILE, "r") as f:
-            return json.load(f)
+            data = json.load(f)
+            return data if data else {"last_num": None}
     except:
         return {"last_num": None}
 
 def save_last_seen(num):
     with open(LAST_SEEN_FILE, "w") as f:
         json.dump({"last_num": num}, f)
+    subprocess.run(["git", "config", "user.email", "actions@github.com"])
+    subprocess.run(["git", "config", "user.name", "GitHub Actions"])
+    subprocess.run(["git", "add", LAST_SEEN_FILE])
+    subprocess.run(["git", "commit", "-m", "chore: update last_seen"])
+    subprocess.run(["git", "push"])
 
 def send_email(new_notices, date_range):
     msg = MIMEMultipart("alternative")
@@ -106,7 +113,7 @@ def main():
 
     if last_num is None:
         save_last_seen(numbered[0]["num"])
-        print("최초 실행: 현재 상태 저장 완료")
+        print(f"최초 실행: {numbered[0]['num']} 저장 완료")
         return
 
     new_notices = [n for n in numbered if int(n["num"]) > int(last_num)]
