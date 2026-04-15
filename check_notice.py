@@ -7,6 +7,7 @@ import subprocess
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from datetime import datetime
+import urllib.request
 
 URL = "https://cse.pusan.ac.kr/cse/14221/subview.do"
 BASE_URL = "https://cse.pusan.ac.kr"
@@ -16,7 +17,6 @@ RECEIVER = os.environ["EMAIL_RECEIVER"]
 LAST_SEEN_FILE = "last_seen.json"
 
 def get_notices():
-    import urllib.request
     req = urllib.request.Request(
         URL,
         headers={
@@ -26,33 +26,12 @@ def get_notices():
     with urllib.request.urlopen(req, timeout=10) as response:
         html = response.read().decode("utf-8")
 
-    #확인
-    print(soup.find("table"))
-
     soup = BeautifulSoup(html, "html.parser")
-    print("HTML 길이:", len(html))
-    print("td.td-subject 개수:", len(soup.select("td.td-subject")))
 
-    notices = []
-    rows = soup.select("td.td-subject")
-    for row in rows:
-        a_tag = row.select_one("a")
-        if not a_tag:
-            continue
-        title = a_tag.get_text(strip=True)
-        href = a_tag.get("href", "")
-        link = BASE_URL + href if href.startswith("/") else href
+    # 임시 디버그
+    print(soup.find_all("table"))
 
-        tr = row.find_parent("tr")
-        date_td = tr.select_one("td.td-date") if tr else None
-        date = date_td.get_text(strip=True) if date_td else ""
-
-        num_td = tr.select_one("td.td-num") if tr else None
-        num = num_td.get_text(strip=True) if num_td else ""
-
-        notices.append({"num": num, "title": title, "link": link, "date": date})
-
-    return notices
+    return []
 
 def load_last_seen():
     try:
