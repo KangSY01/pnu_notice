@@ -26,6 +26,10 @@ def get_notices():
     with urllib.request.urlopen(req, timeout=10) as response:
         html = response.read().decode("utf-8")
 
+    with open("debug.html", "w", encoding="utf-8") as f:
+        f.write(html)
+    print(html[:3000])
+
     soup = BeautifulSoup(html, "html.parser")
     print("HTML 길이:", len(html))
     print("td.td-subject 개수:", len(soup.select("td.td-subject")))
