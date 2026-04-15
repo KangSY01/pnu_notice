@@ -26,8 +26,7 @@ def get_notices():
     with urllib.request.urlopen(req, timeout=10) as response:
         html = response.read().decode("utf-8")
 
-    with open("debug.html", "w", encoding="utf-8") as f:
-        f.write(html)
+    #확인
     print(soup.find("table"))
 
     soup = BeautifulSoup(html, "html.parser")
