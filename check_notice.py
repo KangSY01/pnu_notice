@@ -28,7 +28,7 @@ def get_notices():
 
     with open("debug.html", "w", encoding="utf-8") as f:
         f.write(html)
-    print(html[:3000])
+    print(soup.find("table"))
 
     soup = BeautifulSoup(html, "html.parser")
     print("HTML 길이:", len(html))
