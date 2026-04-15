@@ -1,4 +1,4 @@
-import requests
+import urllib.request
 from bs4 import BeautifulSoup
 import smtplib
 import json
@@ -7,7 +7,6 @@ import subprocess
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from datetime import datetime
-import urllib.request
 
 URL = "https://cse.pusan.ac.kr/cse/14221/subview.do"
 BASE_URL = "https://cse.pusan.ac.kr"
@@ -28,10 +27,26 @@ def get_notices():
 
     soup = BeautifulSoup(html, "html.parser")
 
-    # 임시 디버그
-    print(soup.find_all("table"))
+    notices = []
+    rows = soup.select("td.td-title")
+    for row in rows:
+        a_tag = row.select_one("a")
+        if not a_tag:
+            continue
+        title = a_tag.get_text(strip=True)
+        href = a_tag.get("href", "")
+        link = BASE_URL + href if href.startswith("/") else href
 
-    return []
+        tr = row.find_parent("tr")
+        date_td = tr.select_one("td.td-date") if tr else None
+        date = date_td.get_text(strip=True) if date_td else ""
+
+        num_td = tr.select_one("td.td-num") if tr else None
+        num = num_td.get_text(strip=True) if num_td else ""
+
+        notices.append({"num": num, "title": title, "link": link, "date": date})
+
+    return notices
 
 def load_last_seen():
     try:
@@ -94,7 +109,7 @@ def main():
         print("공지를 가져오지 못했습니다.")
         return
 
-    numbered = [n for n in notices if n["num"].isdigit()]
+    numbered = [n for n in notices if n["num"].strip().isdigit()]
     if not numbered:
         print("새 공지 없음")
         return
@@ -103,11 +118,11 @@ def main():
     last_num = last.get("last_num")
 
     if last_num is None:
-        save_last_seen(numbered[0]["num"])
-        print(f"최초 실행: {numbered[0]['num']} 저장 완료")
+        save_last_seen(numbered[0]["num"].strip())
+        print(f"최초 실행: {numbered[0]['num'].strip()} 저장 완료")
         return
 
-    new_notices = [n for n in numbered if int(n["num"]) > int(last_num)]
+    new_notices = [n for n in numbered if int(n["num"].strip()) > int(last_num)]
 
     if not new_notices:
         print("새 공지 없음")
@@ -115,7 +130,7 @@ def main():
 
     today = datetime.now().strftime("%Y-%m-%d")
     send_email(new_notices, today)
-    save_last_seen(numbered[0]["num"])
+    save_last_seen(numbered[0]["num"].strip())
 
 if __name__ == "__main__":
     main()
