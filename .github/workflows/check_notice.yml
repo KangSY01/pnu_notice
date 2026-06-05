@@ -8,6 +8,12 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    # [수정] Node.js 24 환경을 강제로 사용하여 경고를 해결합니다.
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+      EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
     permissions:
       contents: write
 
@@ -23,8 +29,4 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run notice checker
-        env:
-          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
-          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
         run: python check_notice.py
