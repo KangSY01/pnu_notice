@@ -15,6 +15,8 @@ PASSWORD = os.environ["EMAIL_PASSWORD"]
 RECEIVER = os.environ["EMAIL_RECEIVER"]
 LAST_SEEN_FILE = "last_seen.json"
 
+import time  # 코드 최상단에 없다면 추가해주세요!
+
 def get_notices():
     req = urllib.request.Request(
         URL,
@@ -22,8 +24,23 @@ def get_notices():
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         }
     )
-    with urllib.request.urlopen(req, timeout=10) as response:
-        html = response.read().decode("utf-8")
+    
+    max_retries = 3  # 최대 3번 시도
+    html = None
+    
+    for attempt in range(max_retries):
+        try:
+            # 타임아웃을 10초에서 25초로 넉넉하게 늘립니다.
+            with urllib.request.urlopen(req, timeout=25) as response:
+                html = response.read().decode("utf-8")
+                break  # 성공하면 반복문 탈출!
+        except (urllib.error.URLError, TimeoutError) as e:
+            if attempt < max_retries - 1:
+                print(f"⚠️ 타임아웃/연결 지연 발생 ({e}). 5초 뒤 다시 시도합니다... ({attempt + 1}/{max_retries})")
+                time.sleep(5)
+            else:
+                print("❌ 모든 재시도가 실패했습니다. 서버가 응답하지 않습니다.")
+                raise e # 3번 다 실패하면 그때 에러를 냅니다.
 
     soup = BeautifulSoup(html, "html.parser")
 
